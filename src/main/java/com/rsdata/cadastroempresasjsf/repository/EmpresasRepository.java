@@ -1,18 +1,22 @@
 package com.rsdata.cadastroempresasjsf.repository;
 
 import com.rsdata.cadastroempresasjsf.model.Empresa;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
+import javax.inject.Inject;
 import javax.persistence.EntityManager;
 import java.io.Serializable;
 import java.util.List;
 
-@AllArgsConstructor
-@NoArgsConstructor
-public class Empresas implements Serializable {
+public class EmpresasRepository implements Serializable {
 
+    @Inject
     private EntityManager entityManager;
+
+    public EmpresasRepository(){}
+
+    public EmpresasRepository(EntityManager entityManager){
+        this.entityManager = entityManager;
+    }
 
     public Empresa findById(Long id){
         return entityManager.find(Empresa.class, id);
@@ -24,11 +28,16 @@ public class Empresas implements Serializable {
                 .getResultList();
     }
 
+    public List<Empresa> findAll(){
+        return entityManager.createQuery("from Empresa", Empresa.class).getResultList();
+    }
+
     public Empresa save(Empresa empresa){
         return entityManager.merge(empresa);
     }
 
     public void delete(Empresa empresa){
+        empresa = findById(empresa.getId());
         entityManager.remove(empresa);
     }
 

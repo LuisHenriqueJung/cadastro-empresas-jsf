@@ -1,0 +1,138 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:p="http://primefaces.org/ui"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                template="WEB-INF/template/layout.xhtml">
+    <ui:define name="title">Cadastro de empresas</ui:define>
+    <ui:define name="content">
+        <f:metadata>
+            <f:viewAction action="#{gestaoEmpresasBean.findAllEmpresas()}"/>
+        </f:metadata>
+        <h:form id="frm">
+            <p:growl id="growl" showDetail="true"/>
+            <p:toolbar id="toolbar">
+                <f:facet name="left">
+                    <p:inputText style="margin-right: 5px;" id="searchInput"
+                                 placeholder="Digite aqui um termo para pesquisa..."
+                                 size="30" value="#{gestaoEmpresasBean.searchValue}"/>
+                    <p:commandButton style="margin-right: 5px;" value="Pesquisar" icon="pi pi-search"
+                                     actionListener="#{gestaoEmpresasBean.search()}"
+                                     update="empresasDataTable messages growl"
+                                     process="@this searchInput "/>
+                    <p:commandButton style="margin-right: 5px;" value="Nova" icon="pi pi-plus"
+                                     actionListener="#{gestaoEmpresasBean.createNewEmpresa()}"
+                                     oncomplete="PF('empresaDialogWidgetVar').show()" process="@this"
+                                     update="empresaDialog">
+                        <p:resetInput target="empresaDialog"/>
+                    </p:commandButton>
+                    <p:commandButton style="margin-right: 5px;" title="Editar" icon="pi pi-pencil"
+                                     disabled="#{!gestaoEmpresasBean.isEmpresaSelecionada()}"
+                                     actionListener="#{gestaoEmpresasBean.edit()}"
+                                     oncomplete="PF('empresaDialogWidgetVar').show()"
+                                     update="empresaDialog"
+                                     process="@this">
+                        <p:resetInput target="empresaDialog"/>
+                    </p:commandButton>
+                    <p:commandButton style="margin-right: 5px;" title="Excluir" icon="pi pi-trash"
+                                     disabled="#{!gestaoEmpresasBean.isEmpresaSelecionada()}"
+                                     actionListener="#{gestaoEmpresasBean.delete()}"
+                                     update="empresasDataTable messages toolbar"
+                                     process="@this">
+                        <p:confirm header="Confirmação" message="Tem certeza que deseja excluir esta empresa?"
+                                   icon="pi pi-exclamation-triangle"/>
+                    </p:commandButton>
+
+                </f:facet>
+            </p:toolbar>
+            <p:spacer height="20"/>
+            <p:dataTable id="empresasDataTable" size="small" value="#{gestaoEmpresasBean.empresasList}" var="empresa"
+                         emptyMessage="Nenhuma empresa encontrada" paginator="true" rows="10" paginatorPosition="bottom"
+                         sortMode="multiple" selectionMode="single" selection="#{gestaoEmpresasBean.empresa}"
+                         rowKey="#{empresa.id}">
+                <p:ajax event="rowSelect" update="frm:toolbar"/>
+                <p:ajax event="rowUnselect" update="frm:toolbar"/>
+                <p:column headerText="Razão Social" sortBy="#{empresa.razaoSocial}">
+                    <h:outputText value="#{empresa.razaoSocial}"/>
+                </p:column>
+                <p:column headerText="Nome fantasia" sortBy="#{empresa.nomeFantasia}">
+                    <h:outputText value="#{empresa.nomeFantasia}"/>
+                </p:column>
+                <p:column headerText="Ramo Atividade" sortBy="#{empresa.ramoAtividade.descricao}">
+                    <h:outputText value="#{empresa.ramoAtividade.descricao}"/>
+                </p:column>
+                <p:column headerText="Tipo" sortBy="#{empresa.tipo.descricao}">
+                    <h:outputText value="#{empresa.tipo.descricao}"/>
+                </p:column>
+                <p:column headerText="CNPJ">
+                    <h:outputText value="#{empresa.cnpj}"/>
+                </p:column>
+                <p:column headerText="Data fundação" sortBy="#{empresa.dataFundacao}">
+                    <h:outputText value="#{empresa.dataFundacao}"/>
+                </p:column>
+
+            </p:dataTable>
+
+            <p:dialog id="empresaDialog" widgetVar="empresaDialogWidgetVar" closeOnEscape="true" header="Nova empresa"
+                      modal="true"
+                      resizable="false" draggable="false" closable="true">
+                <p:defaultCommand target="submitButton" scope="empresaDialog"/>
+                <h:panelGrid id="cadastroPanelGrid" rendered="#{gestaoEmpresasBean.empresa ne null}" columns="2"
+                             cellpadding="10">
+                    <p:outputLabel value="Razão Social: " for="razaoSocial"/>
+                    <h:panelGroup>
+                        <p:inputText size="80" id="razaoSocial" value="#{gestaoEmpresasBean.empresa.razaoSocial}"
+                                     required="true"
+                                     requiredMessage="Razão Social é obrigatório" label="Razão Social"/>
+                        <p:message for="razaoSocial"/>
+                    </h:panelGroup>
+                    <p:outputLabel value="Nome fantasia: " for="nomeFantasia"/>
+                    <h:panelGroup>
+                        <p:inputText size="80" id="nomeFantasia" value="#{gestaoEmpresasBean.empresa.nomeFantasia}"
+                                     required="true" requiredMessage="Nome fantasia é obrigatório"
+                                     label="Nome fantasia"/>
+                        <p:message for="nomeFantasia"/>
+                    </h:panelGroup>
+                    <p:outputLabel value="CNPJ: " for="cnpj"/>
+                    <h:panelGroup>
+                        <p:inputMask id="cnpj" mask="99.999.999/9999-99" size="18" maxlength="18"
+                                     value="#{gestaoEmpresasBean.empresa.cnpj}"/>
+                        <p:message for="cnpj"/>
+                    </h:panelGroup>
+                    <p:outputLabel value="Tipo Empresa: " for="tipo"/>
+                    <h:panelGroup>
+                        <p:selectOneMenu id="tipo" value="#{gestaoEmpresasBean.empresa.tipo}" required="true"
+                                         requiredMessage="Tipo Empresa é obrigatório">
+                            <f:selectItem itemLabel="Selecione..."/>
+                            <f:selectItems value="#{gestaoEmpresasBean.tiposEmpresa}" var="tipoEmpresa"
+                                           itemValue="#{tipoEmpresa}" itemLabel="#{tipoEmpresa.descricao}"/>
+                        </p:selectOneMenu>
+                        <p:message for="tipo"/>
+                    </h:panelGroup>
+                    <p:outputLabel value="Data fundação:  " for="dataFundacao"/>
+                    <h:panelGroup>
+                        <p:calendar id="dataFundacao" value="#{gestaoEmpresasBean.empresa.dataFundacao}" size="30"
+                                    pattern="dd/MM/yyyy" required="true" requiredMessage="Data fundação é obrigatório"/>
+                        <p:message for="dataFundacao"/>
+                    </h:panelGroup>
+                    <p:outputLabel value="Ramo atividade:  " for="ramoAtividade"/>
+                    <h:panelGroup>
+                        <p:autoComplete id="ramoAtividade" value="#{gestaoEmpresasBean.empresa.ramoAtividade}"
+                                        completeMethod="#{gestaoEmpresasBean.searchRamoAtividade}"
+                                        converter="#{gestaoEmpresasBean.ramoAtividadeConverter}" var="ramoAtividade"
+                                        itemLabel="#{ramoAtividade.descricao}" itemValue="#{ramoAtividade}"
+                                        required="true" requiredMessage="Ramo atividade é obrigatório"/>
+                        <p:message for="ramoAtividade"/>
+                    </h:panelGroup>
+                    <p:commandButton id="submitButton" value="Salvar" update="empresasDataTable cadastroPanelGrid growl"
+                                     actionListener="#{gestaoEmpresasBean.save}"
+                                     oncomplete="if(!args.validationFailed) PF('empresaDialogWidgetVar').hide()"
+                                     process="empresaDialog"/>
+                    <!-- #################################-->
+                </h:panelGrid>
+
+            </p:dialog>
+        </h:form>
+    </ui:define>>
+
+</ui:composition>
